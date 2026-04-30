@@ -1,0 +1,166 @@
+/* ===================== LAYOUT ===================== */
+    .app-wrapper {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+    }
+
+    /* ===================== SIDEBAR ===================== */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar-bg);
+      color: var(--text-light);
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 200;
+      transition: var(--sidebar-transition);
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex-shrink: 0;
+    }
+    .sidebar.collapsed { width: var(--sidebar-w-col); }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+    /* Rattio SVG Logo */
+    .sidebar-logo {
+      width: auto; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sidebar-logo img { height: 36px; width: auto; object-fit: contain; }
+    .sidebar.collapsed .sidebar-logo img { height: 30px; }
+
+    .sidebar-title { transition: var(--sidebar-transition); white-space: nowrap; overflow: hidden; }
+    .sidebar-title h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px; font-weight: 400; letter-spacing: -0.5px;
+      color: #fff; line-height: 1;
+    }
+    .sidebar-title span { font-size: 10px; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500; }
+    .sidebar.collapsed .sidebar-title { opacity: 0; width: 0; pointer-events: none; }
+
+    .sidebar-toggle-btn {
+      position: absolute; right: -13px; top: 50%; transform: translateY(-50%);
+      background: var(--rattio-navy); border: 1.5px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.5); cursor: pointer;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; transition: all 0.2s; z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .sidebar-toggle-btn:hover { background: var(--rattio-blue); color: #fff; border-color: var(--rattio-blue); }
+    .sidebar.collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
+
+    .sidebar-nav-group {
+      padding: 12px 12px 0;
+      flex: 1;
+    }
+    .sidebar-nav-label {
+      font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.55);
+      text-transform: uppercase; letter-spacing: 1.8px;
+      padding: 0 8px 6px; margin-top: 16px; display: block;
+    }
+    .sidebar.collapsed .sidebar-nav-label { display: none; }
+
+    .sidebar nav { display: flex; flex-direction: column; gap: 1px; }
+    .nav-button {
+      border: none; background: transparent; color: rgba(255,255,255,0.5);
+      padding: 10px 12px; text-align: left; border-radius: 2px; cursor: pointer;
+      display: flex; align-items: center; gap: 11px;
+      font-weight: 500; font-size: 14px;
+      transition: all 0.18s ease; white-space: nowrap; overflow: hidden;
+      font-family: 'Inter', inherit;
+    }
+    .nav-button i { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; transition: color 0.18s; }
+    .nav-button:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+    .nav-button.active {
+      background: rgba(0,85,255,0.12);
+      color: #fff;
+      border-left: 2px solid var(--rattio-blue);
+      padding-left: 10px;
+      font-weight: 600;
+    }
+    .nav-button.active i { color: var(--rattio-sky); }
+    .sidebar.collapsed .nav-button { justify-content: center; padding: 11px; border-left: none; padding-left: 11px; }
+    .sidebar.collapsed .nav-button.active { border-left: none; background: rgba(37,99,235,0.22); }
+    .sidebar.collapsed .nav-button span { display: none; }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    /* ===================== MAIN AREA ===================== */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ===================== HEADER ===================== */
+    .main-header {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px 28px;
+      padding-left: max(28px, env(safe-area-inset-left));
+      padding-right: max(28px, env(safe-area-inset-right));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      flex-shrink: 0;
+      z-index: 100;
+      transition: background 0.3s;
+    }
+    .month-nav {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg-light); padding: 4px; border-radius: 2px;
+      border: 1px solid var(--border-color);
+    }
+    .month-nav-btn {
+      border: none; background: transparent; color: var(--text-muted);
+      padding: 6px 11px; border-radius: 2px; cursor: pointer; transition: all 0.2s; font-size: 12px;
+    }
+    .month-nav-btn:hover { background: var(--border-color); color: var(--text-main); }
+    .month-name { font-weight: 700; font-size: 12px; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; min-width: 110px; text-align: center; }
+
+    .header-summary { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .summary-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 13px; border-radius: var(--radius-full);
+      font-weight: 600; font-size: 13px; border: 1px solid;
+    }
+    .summary-pill.income { background: #ECFDF5; border-color: #A7F3D0; color: #065F46; }
+    .summary-pill.expense { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+    .summary-pill.balance-pos { background: var(--rattio-navy); border-color: var(--rattio-navy); color: #fff; box-shadow: 0 2px 8px rgba(27,42,74,0.2); }
+    .summary-pill.balance-neg { background: #FEF2F2; border-color: #FCA5A5; color: #DC2626; }
+
+    /* ===================== CONTENT ===================== */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 24px 28px 80px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tab-section { display: none; flex-direction: column; gap: 20px; animation: fadeIn 0.25s ease; }
+    .tab-section.active { display: flex; }
