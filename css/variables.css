@@ -1,0 +1,109 @@
+/* CSS consolidado — sem duplicatas — 2026-04-29 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Serif+Display:ital@0;1&display=swap');
+
+    :root {
+      /* ── Rattio Brand ── */
+      --rattio-navy: #1B2A4A;
+      --rattio-navy-deep: #0f1e38;
+      --rattio-blue: #0055FF;
+      --rattio-sky: #2979FF;
+      --rattio-teal: #00B8D4;
+      --rattio-silver: #94A3B8;
+      --rattio-accent: #FF6D00;
+
+      /* ── Light Mode ── */
+      --bg-dark: #1B2A4A;
+      --bg-page: #F5F5F0;
+      --bg-light: #EEEDE8;
+      --card-bg: #FAFAF8;
+      --accent-green: #00A86B;
+      --accent-dark-green: #008C5A;
+      --accent-light: #E6F9EF;
+      --text-main: #1A1A1A;
+      --text-muted: #6B6B6B;
+      --text-light: #F8FAFC;
+      --border-color: #E0DED8;
+      --success: #00A86B;
+      --danger: #E53935;
+      --danger-light: #FDECEA;
+      --warning: #D97706;
+      --warning-light: #FEF3C7;
+      --info: #0055FF;
+      --info-light: #E8F0FF;
+      --violet: #7C3AED;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.03);
+      --shadow-lg: 0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.04);
+      --shadow-float: 0 8px 24px rgba(0,0,0,0.12), 0 24px 48px rgba(0,0,0,0.06);
+      --radius: 4px;
+      --radius-sm: 2px;
+      --radius-full: 4px;
+      --sidebar-w: 264px;
+      --sidebar-w-col: 76px;
+      --sidebar-transition: all 0.32s cubic-bezier(0.4,0,0.2,1);
+      --header-bg: #FFFFFF;
+      --sidebar-bg: #1B2A4A;
+      --input-bg: #F8FAFC;
+      --skeleton-base: #E2E8F0;
+      --skeleton-shine: #F8FAFC;
+    }
+
+    /* ── Dark Mode ── */
+    [data-theme="dark"] {
+      --bg-page: #0D0D0D;
+      --bg-light: #1A1A1A;
+      --card-bg: #1E1E1E;
+      --text-main: #E8E8E8;
+      --text-muted: #888888;
+      --border-color: #2A2A2A;
+      --accent-light: rgba(5,150,105,0.15);
+      --accent-dark-green: #34D399;
+      --danger-light: rgba(220,38,38,0.15);
+      --warning-light: rgba(217,119,6,0.15);
+      --info-light: rgba(37,99,235,0.15);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-lg: 0 4px 16px rgba(0,0,0,0.5);
+      --shadow-float: 0 8px 32px rgba(0,0,0,0.6);
+      --header-bg: #141414;
+      --sidebar-bg: #0A0A0A;
+      --input-bg: #161616;
+      --skeleton-base: #263352;
+      --skeleton-shine: #2d3d5a;
+    }
+    /* Dark mode alert items */
+    [data-theme="dark"] .alert-item.danger { background: rgba(220,38,38,0.18); border-color: rgba(220,38,38,0.35); color: #fca5a5; }
+    [data-theme="dark"] .alert-item.warning-alert { background: rgba(217,119,6,0.18); border-color: rgba(217,119,6,0.35); color: #fde68a; }
+    [data-theme="dark"] .alert-item.info { background: rgba(37,99,235,0.18); border-color: rgba(37,99,235,0.35); color: #93c5fd; }
+    [data-theme="dark"] .summary-pill.income { background: rgba(5,150,105,0.2); border-color: rgba(5,150,105,0.35); color: #34D399; }
+    [data-theme="dark"] .summary-pill.expense { background: rgba(220,38,38,0.15); border-color: rgba(220,38,38,0.3); color: #fca5a5; }
+    [data-theme="dark"] .installment-info-box { background: rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.35); color: #93c5fd; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+    /* Subtle grain texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+
+    * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
