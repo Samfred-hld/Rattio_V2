@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Rattio — Controle Financeiro Inteligente</title>
+  <meta name="description" content="Rattio v7 — Gerencie suas finanças pessoais com inteligência. Controle receitas, despesas, orçamentos e metas.">
+  <meta name="theme-color" content="#1B2A4A">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com https://generativelanguage.googleapis.com; img-src 'self' data:;">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Chart.js e jsPDF: carregados sob demanda -->
+  <script>
+    window._loadedScripts = {};
+    window.loadScript = function(url) {
+      if (window._loadedScripts[url]) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url; s.onload = () => { window._loadedScripts[url] = true; resolve(); }; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    };
+    window.ensureChartJS = function() {
+      if (window.Chart) return Promise.resolve();
+      return loadScript('https://cdn.jsdelivr.net/npm/chart.js');
+    };
+    window.ensureJsPDF = function() {
+      if (window.jspdf) return Promise.resolve();
+      return Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js')
+      ]);
+    };
+  </script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/responsive.css" />
+</head>
+<body>
+
+  <!-- Accessibility -->
+  <div id="a11yAnnouncer" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+  <a href="#mainContent" class="skip-link">Pular para o conteúdo principal</a>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Global Search Overlay -->
+  <div class="global-search-overlay" id="globalSearchOverlay" role="dialog" aria-modal="true" aria-label="Busca global">
+    <div class="global-search-box">
+      <div class="global-search-input-wrap">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" id="globalSearchInput" placeholder="Buscar transações, categorias..." autocomplete="off" aria-label="Buscar" />
+      </div>
+      <div class="global-search-results" id="globalSearchResults"></div>
+      <div class="gsearch-hint"><kbd>↑↓</kbd> navegar &nbsp;<kbd>Enter</kbd> selecionar &nbsp;<kbd>ESC</kbd> fechar</div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirm-overlay" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <div class="confirm-box">
+      <h3 id="confirm-title"><i class="fas fa-trash-alt"></i> Excluir Registro?</h3>
+      <p id="confirm-text"></p>
+      <div class="confirm-btns">
+        <button class="btn-cancel" id="confirm-cancel-btn" aria-label="Cancelar">Cancelar</button>
+        <button class="btn-confirm" id="confirm-ok-btn" aria-label="Confirmar exclusão"><i class="fas fa-trash"></i> Sim, Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-wrapper">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHZpZXdCb3g9IjAgMCAzNiAzNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzYiIGhlaWdodD0iMzYiIHJ4PSI4IiBmaWxsPSIjMDA1NUZGIi8+PHRleHQgeD0iMTgiIHk9IjI0IiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtd2VpZ2h0PSI4MDAiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5SPC90ZXh0Pjwvc3ZnPg==" alt="Rattio Logo" />
+        </div>
+        <div class="sidebar-title">
+          <h1>Rattio</h1>
+          <span>Controle Financeiro</span>
+        </div>
+        <button class="sidebar-toggle-btn" id="sidebarToggle" title="Recolher menu" aria-label="Recolher menu" aria-expanded="true">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+      <div class="sidebar-nav-group">
+        <span class="sidebar-nav-label">Principal</span>
+        <nav>
+          <button class="nav-button active" data-tab="dashboard" aria-label="Dashboard"><i class="fas fa-border-all" aria-hidden="true"></i><span>Dashboard</span><span class="kbd-badge">1</span></button>
+          <button class="nav-button" data-tab="transactions" aria-label="Transações"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Transações</span><span class="kbd-badge">2</span></button>
+          <button class="nav-button" data-tab="budgets" aria-label="Orçamentos"><i class="fas fa-chart-pie" aria-hidden="true"></i><span>Orçamentos</span><span class="kbd-badge">3</span></button>
+          <button class="nav-button" data-tab="goals" aria-label="Metas"><i class="fas fa-bullseye" aria-hidden="true"></i><span>Metas</span><span class="kbd-badge">4</span></button>
+        </nav>
+        <span class="sidebar-nav-label">Análise</span>
+        <nav>
+          <button class="nav-button" data-tab="calendar" aria-label="Calendário"><i class="far fa-calendar-alt" aria-hidden="true"></i><span>Calendário</span><span class="kbd-badge">5</span></button>
+          <button class="nav-button" data-tab="reports" aria-label="Relatórios Avançados"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>Relatórios</span><span class="kbd-badge">6</span></button>
+        </nav>
+        <span class="sidebar-nav-label">Sistema</span>
+        <nav>
+          <button class="nav-button" data-tab="configurations" aria-label="Configurações"><i class="fas fa-sliders-h" aria-hidden="true"></i><span>Configurações</span><span class="kbd-badge">7</span></button>
+        </nav>
+      </div>
+      <div class="sidebar-footer">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
+          <div style="width:32px;height:32px;background:rgba(37,99,235,0.2);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#60A5FA;font-size:13px;flex-shrink:0;"><i class="fas fa-user"></i></div>
+          <div class="sidebar-title" style="overflow:hidden;">
+            <span style="font-size:12px;color:rgba(255,255,255,0.7);">Usuário</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+      <header class="main-header">
+        <div class="month-nav">
+          <button class="month-nav-btn" id="prevMonthBtn" aria-label="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+          <span class="month-name" id="monthName">JANEIRO 2025</span>
+          <button class="month-nav-btn" id="nextMonthBtn" aria-label="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="header-summary">
+          <div class="summary-pill income"><i class="fas fa-arrow-up" aria-hidden="true"></i> <span id="headerIncome">R$ 0,00</span></div>
+          <div class="summary-pill expense"><i class="fas fa-arrow-down" aria-hidden="true"></i> <span id="headerExpense">R$ 0,00</span></div>
+          <div class="summary-pill balance-pos" id="headerBalancePill"><i class="fas fa-wallet" aria-hidden="true"></i> <span id="headerBalance">R$ 0,00</span></div>
+          <button class="notif-bell" id="notifBellBtn" title="Notificações de vencimento" aria-label="Notificações">
+            <i class="fas fa-bell" aria-hidden="true"></i>
+            <span class="notif-dot hidden" id="notifDot"></span>
+          </button>
+          <button class="dark-toggle" id="darkToggleBtn" title="Alternar tema claro/escuro" aria-label="Alternar tema">
+            <i class="fas fa-moon" id="darkToggleIcon"></i>
+          </button>
+          <button class="dark-toggle" id="globalSearchBtn" title="Busca global (Ctrl+K)" aria-label="Busca global" style="background:rgba(16,185,129,0.1);color:var(--accent-green);">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT -->
+      <main class="main-content" id="mainContent">
+        <section class="tab-section active" id="dashboardPage"></section>
+        <section class="tab-section" id="transactionsPage"></section>
+        <section class="tab-section" id="budgetsPage"></section>
+        <section class="tab-section" id="goalsPage"></section>
+        <section class="tab-section" id="calendarPage"></section>
+        <section class="tab-section" id="reportsPage"></section>
+        <section class="tab-section" id="configurationsPage"></section>
+      </main>
+
+      <!-- Scroll to top -->
+      <button id="scrollTopBtn" class="scroll-top-btn" aria-label="Voltar ao topo"><i class="fas fa-chevron-up"></i></button>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav" aria-label="Navegação mobile">
+    <button class="nav-button" data-tab="dashboard" aria-label="Dashboard"><i class="fas fa-border-all" aria-hidden="true"></i><span>Início</span></button>
+    <button class="nav-button" data-tab="transactions" aria-label="Transações"><i class="fas fa-exchange-alt" aria-hidden="true"></i><span>Extrato</span></button>
+    <button class="fab-trigger" id="mobileFab" aria-label="Novo lançamento"><i class="fas fa-plus"></i></button>
+    <button class="nav-button" data-tab="reports" aria-label="Relatórios"><i class="fas fa-chart-line" aria-hidden="true"></i><span>Gráficos</span></button>
+    <button class="nav-button" data-tab="configurations" aria-label="Configurações"><i class="fas fa-sliders-h" aria-hidden="true"></i><span>Config</span></button>
+  </nav>
+
+  <!-- MOBILE BOTTOM SHEET -->
+  <div class="mobile-bottom-sheet-overlay" id="mobileSheetOverlay">
+    <div class="mobile-bottom-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">Novo Lançamento</div>
+      <div class="sheet-options">
+        <button class="sheet-option income" id="sheetIncome">
+          <i class="fas fa-arrow-up" aria-hidden="true"></i>
+          <span>Receita</span>
+        </button>
+        <button class="sheet-option expense" id="sheetExpense">
+          <i class="fas fa-arrow-down" aria-hidden="true"></i>
+          <span>Despesa</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTION MODAL -->
+  <div id="transactionModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="txModalTitle">
+    <div class="modal-content">
+      <button class="modal-close" data-close="transactionModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      <h3 class="modal-title" id="txModalTitle"><i class="fas fa-pen-to-square" style="color:var(--accent-green)"></i> <span id="modalTxTitle">Novo Lançamento</span></h3>
+      <form id="transactionForm" autocomplete="off">
+        <div class="form-section-title"><i class="fas fa-circle-half-stroke"></i> Tipo de Lançamento</div>
+        <div class="type-toggle-group">
+          <button type="button" class="type-toggle active" data-type="expense" id="typeExpense"><i class="fas fa-arrow-down"></i> Despesa</button>
+          <button type="button" class="type-toggle" data-type="income" id="typeIncome"><i class="fas fa-arrow-up"></i> Receita</button>
+          <button type="button" class="type-toggle" data-type="investment" id="typeInvestment"><i class="fas fa-chart-line"></i> Investimento</button>
+        </div>
+        <div class="form-section-title"><i class="fas fa-align-left"></i> Detalhes</div>
+        <div class="form-row">
+          <div class="form-group"><label for="txDate">Data</label><input type="date" id="txDate" required /></div>
+          <div class="form-group"><label for="transactionValue">Valor (R$)</label><input type="number" id="transactionValue" step="0.01" min="0.01" placeholder="0,00" required /></div>
+        </div>
+        <div class="form-group"><label for="txDescription">Descrição</label><input type="text" id="txDescription" maxlength="100" placeholder="Ex: Supermercado, Salário..." required /><datalist id="descAutocomplete"></datalist></div>
+        <div id="categorySuggestionHint" class="category-suggestion-hint hidden"></div>
+        <div class="form-section-title"><i class="fas fa-tags"></i> Classificação</div>
+        <div class="form-row">
+          <div class="form-group"><label for="txCategory">Categoria</label><select id="txCategory" required></select></div>
+          <div class="form-group"><label for="txPayment">Forma de Pagamento</label><select id="txPayment" required></select></div>
+        </div>
+        <div class="collapsible-section">
+          <button type="button" class="toggle-btn" id="advancedToggle"><i class="fas fa-chevron-right toggle-icon"></i> Opções Avançadas</button>
+          <div class="toggle-content hidden" id="advancedContent">
+            <div class="form-row">
+              <div class="form-group"><label for="txCard">Cartão de Crédito</label><select id="txCard"><option value="">Nenhum</option></select></div>
+              <div class="form-group"><label><input type="checkbox" id="txFixed" /> Despesa Fixa</label></div>
+            </div>
+            <div id="installmentDetails" class="hidden">
+              <div class="form-row">
+                <div class="form-group"><label for="installmentCount">Parcelas</label><input type="number" id="installmentCount" min="2" max="60" value="2" /></div>
+                <div class="form-group"><label for="installmentTotal">Valor Total (R$)</label><input type="number" id="installmentTotal" step="0.01" min="0.01" /></div>
+              </div>
+              <div class="installment-info-box" id="installmentInfo"></div>
+            </div>
+            <div id="goalLinkSection" class="hidden">
+              <div class="form-group"><label for="txGoal">Vincular à Meta</label><select id="txGoal"><option value="">Nenhuma</option></select></div>
+            </div>
+            <div class="form-group"><label for="txNotes">Observações</label><textarea id="txNotes" rows="2" placeholder="Notas opcionais..."></textarea></div>
+          </div>
+        </div>
+        <input type="hidden" id="editTxId" value="" />
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" data-close="transactionModal">Cancelar</button>
+          <button type="submit" class="btn-primary" id="btnSaveTransaction"><i class="fas fa-check"></i> Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CSV IMPORT MODAL -->
+  <div id="csvImportModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="csvImportModalTitle">
+    <div class="modal-content" style="max-width:820px;">
+      <button class="modal-close" data-close="csvImportModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      <h3 class="modal-title" id="csvImportModalTitle"><i class="fas fa-credit-card" style="color:var(--info)"></i> Importar Fatura de Cartão</h3>
+      <div class="csv-import-body">
+        <div class="csv-step" id="csvStep1">
+          <p class="csv-instructions">Importe faturas de cartão de crédito em formato CSV. Suporta Nubank, Itaú e formatos genéricos.</p>
+          <div class="csv-drop-zone" id="csvDropZone">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>Arraste o arquivo CSV aqui ou <label for="csvFileInput" class="csv-browse-link">clique para selecionar</label></p>
+            <input type="file" id="csvFileInput" accept=".csv,.txt" hidden />
+          </div>
+          <div class="form-row" style="margin-top:16px;">
+            <div class="form-group"><label for="csvCardSelect">Cartão de Destino</label><select id="csvCardSelect"><option value="">Selecione...</option></select></div>
+            <div class="form-group"><label for="csvDateFormat">Formato de Data</label><select id="csvDateFormat"><option value="auto">Auto-detectar</option><option value="DD/MM/YYYY">DD/MM/YYYY</option><option value="YYYY-MM-DD">YYYY-MM-DD</option><option value="MM/DD/YYYY">MM/DD/YYYY</option></select></div>
+          </div>
+        </div>
+        <div class="csv-step hidden" id="csvStep2">
+          <div class="csv-preview-header">
+            <span id="csvRowCount">0 transações encontradas</span>
+            <div class="csv-preview-actions">
+              <button class="btn-secondary" id="csvBackBtn"><i class="fas fa-arrow-left"></i> Voltar</button>
+              <button class="btn-primary" id="csvConfirmBtn"><i class="fas fa-check"></i> Importar <span id="csvImportCount">0</span></button>
+            </div>
+          </div>
+          <div class="table-responsive" style="max-height:360px;overflow-y:auto;">
+            <table class="data-table csv-preview-table">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="csvSelectAll" checked /></th>
+                  <th>Data</th>
+                  <th>Descrição</th>
+                  <th>Categoria</th>
+                  <th>Valor</th>
+                  <th>Parcela</th>
+                </tr>
+              </thead>
+              <tbody id="csvPreviewBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD STATEMENT MODAL -->
+  <div id="cardStatementModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cardStatementModalTitle">
+    <div class="modal-content" style="max-width:720px;">
+      <button class="modal-close" data-close="cardStatementModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      <h3 class="modal-title" id="cardStatementModalTitle"><i class="fas fa-file-invoice-dollar" style="color:var(--info)"></i> Extrato: <span id="statementCardName"></span></h3>
+      <div class="statement-summary" id="statementSummary"></div>
+      <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+        <table class="data-table"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead><tbody id="statementBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY MODAL -->
+  <div id="historyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+    <div class="modal-content" style="max-width:750px;">
+      <button class="modal-close" data-close="historyModal" aria-label="Fechar"><i class="fas fa-times"></i></button>
+      <h3 class="modal-title" id="historyModalTitle"><i class="fas fa-history" style="color:var(--warning)"></i> Histórico de Alterações</h3>
+      <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
+        <table class="data-table"><thead><tr><th>Data/Hora</th><th>Ação</th><th>Detalhes</th></tr></thead><tbody id="historyModalBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONBOARDING MODAL -->
+  <div id="onboardingModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+    <div class="modal-content" style="max-width:480px;padding:0;overflow:hidden;">
+      <div id="onb-body"></div>
+    </div>
+  </div>
+
+  <!-- FAB (Floating Action Button) -->
+  <button class="fab" id="fabBtn" aria-label="Novo lançamento"><i class="fas fa-plus"></i></button>
+
+  <!-- JS — loaded in order (IIFE wraps utils.js → app.js) -->
+  <script src="js/utils.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pagination.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/transactions.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/transactions-tab.js"></script>
+  <script src="js/budgets.js"></script>
+  <script src="js/goals.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/configurations.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
